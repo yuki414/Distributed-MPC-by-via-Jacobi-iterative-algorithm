@@ -3,7 +3,7 @@ clear all
 close all
 solver = 'gurobi';  % gurobi or cplex
 controller = 'dmpc'; % cmpc, dmpc or free
-terminal = 'constraint' % constraint or cost
+terminal = 
 %% parameters
 k1 = 0.4;   k2 = 0.3;
 fs = 0.4;
@@ -18,7 +18,7 @@ Ri = 10; % for input
 Aij = zeros(2,2);
 Aim1 = [0,      0
         Ts*k2,  0];
-Aii = [ 1,                  Ts
+Aii = [ 1,              Ts
         Ts*(-k1-2*k2),   1-Ts*fs]; % nominal parameter is k1-2*k2
 Aip1= Aim1;
 Bij = zeros(2,1);
