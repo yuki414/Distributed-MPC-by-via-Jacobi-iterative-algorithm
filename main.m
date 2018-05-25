@@ -2,8 +2,9 @@ clc
 clear all
 close all
 solver = 'gurobi';  % gurobi or cplex
+controller = '' % cmpc, dmpc or free
 %% parameters
-k1 = -0.4;   k2 = 0.3;
+k1 = 0.4;   k2 = 0.3;
 fs = 0.4;
 Ts = 0.05;
 RUNSTEP = 4/Ts;
@@ -17,19 +18,19 @@ Aij = zeros(2,2);
 Aim1 = [0,      0
         Ts*k2,  0];
 Aii = [ 1,              Ts
-        Ts*(k1-2*k2),   1-Ts*fs];
+        Ts*(-k1-2*k2),   1-Ts*fs]; % nominal parameter is k1-2*k2
 Aip1= Aim1;
 Bij = zeros(2,1);
 Bii = [0, Ts]';
 %% global dynamics
-n = size(Aii);  %サブシステムの状態数
+n = size(Aii);  % nuber of subsystem
 A = zeros(n*M);
 B = zeros(n*M,M);
-n_x = size(A,2); %状態の次数
-n_u = size(B,2); %入力の次数
+n_x = size(A,2); % dim of state
+n_u = size(B,2); % dim of inout
 
 for i = 1:M %
-    A(n*i-1:n*i,n*i-1:n*i) = Aii; % 対角成分
+    A(n*i-1:n*i,n*i-1:n*i) = Aii; % diagonal component
     if i < M
         A(n*(i+1)-1:n*(i+1),n*i-1:n*i) = Aim1; % 
         A(n*i-1:n*i,n*(i+1)-1:n*(i+1)) = Aip1; % 
@@ -54,7 +55,7 @@ x0 = 2*(rand(n_x,1)-0.5);   % x_i=[position, velocity]';
 % x0 = zeros(n_x,1);
 % x0(1,1) = 1;
 %% Centralized MPC
-if 1
+if(strcmpi(solver,'cmpc'))
 %     RUNSTEP = 10;
 mpc_pre_centralized
 x_c = x0;
@@ -74,7 +75,7 @@ end
 draw_calc_time(3)
 end
 %% Distributed MPC
-if 0
+if(strcmpi(solver,'dmpc'))
 omega = 1;
 omega_i = omega/M; % set a mean
 pmax = 2;   % a number of iteration
@@ -93,14 +94,14 @@ for step_i = 1:RUNSTEP
 %         tic
     opt=zeros((n_x+n_u)*N,1);
     for p = 0:pmax % loop for iteration
-        z_p=0; % iterationごとに初期化
+        z_p=0; % initialization by a iteration
         
         data_t=[];
         for i = 1:M
 %             i
             switch i
                 case 1
-                    mpc_pre_distributed_1 % 統合可
+                    mpc_pre_distributed_1 % possible to merge
                 case M 
                     mpc_pre_distributed_M
                 otherwise
@@ -118,13 +119,13 @@ for step_i = 1:RUNSTEP
 %             if i == M-1
 %                 opt1(n_x_i*N*(i-2)+1:n_x_i*N*(i)) = 0;
 %             end
-%             z_p = z_p + omega_i*(z_i_p + opt1); % 凸結合
-            z_p = z_p + omega_i*z_i_p; % 凸結合
+%             z_p = z_p + omega_i*(z_i_p + opt1); % convex combination
+            z_p = z_p + omega_i*z_i_p; % convex combination
         end
 %         norm(z_p)
-        opt = z_p; % z_pの保存
+        opt = z_p; % save z_p
 %         opt1= opt;
-        data_i = [data_i, opt]; % 各サブシステムの解系列
+        data_i = [data_i, opt]; %  sequence of subsystem
         data_u = [data_u; ([zeros(n_u,n_u*k) eye(n_u) zeros(n_u,n_u*(N-1-k))]*[zeros(n_u*N,n_x*N), eye(n_u*N)]*opt)'];
     end
     k=0;
