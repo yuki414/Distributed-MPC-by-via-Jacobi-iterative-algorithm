@@ -1,0 +1,40 @@
+function draw_calc_time(n)
+% 現在の計算の進行状況を表示する関数
+% 引数...
+% 0:準備;  1:進行状況を表示;  2:figureのclose
+%%
+persistent h
+% 連続変数の定義
+RUNSTEP_f=evalin('base', 'RUNSTEP'); %% receive variable from base workspace
+%% draw calculation time
+if n==0
+    scrsz = get(0,'ScreenSize');
+    figure('MenuBar','None','Toolbar','None','Name','calculating...',...
+        'Position',[scrsz(3)*74/100 scrsz(4)*88/100 scrsz(3)/4 scrsz(4)/12])
+    hold on
+    h=fill([0 0 100*0/RUNSTEP_f 100*0/RUNSTEP_f],[0 1 1 0],'green','EraseMode','xor','LineWidth',2);
+    set(gca,'XTick',0:25:100); set(gca,'YTick',[0 1]);
+    axis([0 100 0 1])
+    drawnow
+
+%% draw calculating...
+elseif n==1
+    step_f=evalin('base', 'step_c'); %% receive variable from base workspace
+    if rem(step_f, 10)==0
+        set(h,'XData',[0 0 100*step_f/RUNSTEP_f 100*step_f/RUNSTEP_f],'YData',[0 1 1 0])
+        drawnow
+    end
+%% draw calculating...
+elseif n==2
+    p_f=evalin('base', 'pmax'); % a number of iteration
+    i_f = evalin('base', 'M'); % a number of subsystem
+    RUNSTEP_f=RUNSTEP_f*p_f*i_f;
+    step_f=evalin('base', '(step_i-1)*(pmax+1)*M+p*M+i'); %% receive variable from base workspace
+    if rem(step_f, 10)==0
+        set(h,'XData',[0 0 100*step_f/RUNSTEP_f 100*step_f/RUNSTEP_f],'YData',[0 1 1 0])
+        drawnow
+    end
+%% close 
+else
+    close(1)
+end
