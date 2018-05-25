@@ -74,10 +74,10 @@ end
 draw_calc_time(3)
 end
 %% Distributed MPC
-if 1
+if 0
 omega = 1;
-omega_i = omega/M; % d‚İ‚ğ‹Ïˆê‚Æ‚µ‚½
-pmax = 2;
+omega_i = omega/M; % set a mean
+pmax = 2;   % a number of iteration
 % for i=1:M
 %     mpc_pre_distributed
 % end
