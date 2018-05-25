@@ -1,0 +1,3 @@
+a=(n_x+n_u)*N
+z_i_p=[1:M*2]';
+b=size([zeros((i-M)*(n_x+n_u),1)', z_i_p', zeros((N-i+1)*(n_x+n_u),1)'])

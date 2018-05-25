@@ -77,43 +77,39 @@ end
 %% Distributed MPC
 if(strcmpi(controller,'dmpc'))
 %% unique parameter for dmpc
+x = x0;
 omega = 1;
 omega_i = omega/M; % set a mean
 pmax = 2;   % a number of iteration
 r = 1;  % neighborhood set
 r = r*2 + 1;    % e.g. r=1 is {i-1,i,i+1}
-    % dmpc preparation for each subsystems
-    % especial case is on i=1,M.
-    % design each unique system to H, Aeq, Aineq and so on...
-    % but beq is constant value changed by step or iteration
-    % thereby beq is programmed later
+%%
 mpc_pre_distributed
-z_p=[]; 
-x = x0;
-X = x0(2*i-1:2*i,1);
-data_i = [];    data_d=[]; data_u=[];
-data_x=[];
+% dmpc preparation for each subsystems
+% especial case is on i=1,M.
+% design each unique system to H, Aeq, Aineq and so on...
+% but beq is constant value changed by step or iteration
+% thereby beq is programmed later
+
+z_p=zeros((n_x+n_u)*N); 
+% X = x0(2*i-1:2*i,1);
+% data_i = [];    data_d=[]; data_u=[];
+% data_x=[];
 % RUNSTEP = 1;
 draw_calc_time(0)
-for step_i = 1:RUNSTEP
+for step_d = 1:RUNSTEP
     calc_time(step_i) = toc;
 %         tic
-    opt=zeros((n_x+n_u)*N,1);
+    opt=zeros((n_x_i+n_u_i)*N,1);
     for p = 0:pmax % loop for iteration
         z_p=0; % initialization by a iteration
         
         data_t=[];
         for i = 1:M
-%             i
-            switch i
-                case 1
-                    mpc_pre_distributed_1 % possible to merge
-                case M 
-                    mpc_pre_distributed_M
-                otherwise
-                    mpc_pre_distributed
-            end
             mpc_calc_distributed_iteration
+%             eval('z_', num2str(i), '_p = z_i_p;');
+            % assign each sequence to orgin sequenc....en route 25/may
+            z_p = z_p + [zeros((i-2)*(n_x+n_u),1)', z_i_p', zeros((N-i+1)*(n_x+n_u),1)'];
             draw_calc_time(2)
             opt1 = opt;
 %             if (i>1&&i<M)
