@@ -83,6 +83,10 @@ omega_i = omega/M; % set a mean
 pmax = 2;   % a number of iteration
 r = 1;  % neighborhood set
 r = r*2 + 1;    % e.g. r=1 is {i-1,i,i+1}
+AB = [];
+for j = 1:N
+    AB = blkdiag(AB,A,B);
+end
 %%
 mpc_pre_distributed
 % dmpc preparation for each subsystems
@@ -91,7 +95,7 @@ mpc_pre_distributed
 % but beq is constant value changed by step or iteration
 % thereby beq is programmed later
 
-z_p=zeros((n_x+n_u)*N); 
+z_p=zeros((n_x+n_u)*N,1); 
 % X = x0(2*i-1:2*i,1);
 % data_i = [];    data_d=[]; data_u=[];
 % data_x=[];
@@ -102,32 +106,40 @@ for step_d = 1:RUNSTEP
 %         tic
     opt=zeros((n_x_i+n_u_i)*N,1);
     for p = 0:pmax % loop for iteration
-        z_p=0; % initialization by a iteration
         
         data_t=[];
         for i = 1:M
-            mpc_calc_distributed_iteration
-%             eval('z_', num2str(i), '_p = z_i_p;');
-            % assign each sequence to orgin sequenc....en route 25/may
-            z_p = z_p + [zeros((i-2)*(n_x+n_u),1)', z_i_p', zeros((N-i+1)*(n_x+n_u),1)'];
+%             should review, because of z=[x', u']' but zi = [xi', ui']'
+            z_mi = z_p;
+            if i == 1
+                z_mi(1:(n_x_i+n_u_i)*N*2,1) = 0;
+            elseif i == M
+                z_mi((n_x_i+n_u_i)*N*(M-1)+1:(n_x_i+n_u_i)*N*M) = 0;
+            else
+                z_mi((n_x_i+n_u_i)*N*(i-2)+1:(n_x_i+n_u_i)*N*(i+1)) = 0;
+            end
+            x_mi = AB*z_mi;
+            mpc_calc_distributed
             draw_calc_time(2)
-            opt1 = opt;
-%             if (i>1&&i<M)
-%                 opt1(n_x_i*N*(i-2)+1:n_x_i*N*(i+1)) = 0;
-%             end
-%             if i == 1
-%                 opt1(n_x_i*N*(i-1)+1:n_x_i*N*(i+1)) = 0;
-%             end
-%             if i == M-1
-%                 opt1(n_x_i*N*(i-2)+1:n_x_i*N*(i)) = 0;
-%             end
-%             z_p = z_p + omega_i*(z_i_p + opt1); % convex combination
-            z_p = z_p + omega_i*z_i_p; % convex combination
+%             eval('z_', num2str(i), '_p = z_i_p;');
+            % this is a case when optimal sequence of only i-th phiscal system
+            % is extended to global sequence
+            % [zeros((n_x_i+n_u_i)*N*(i-1),1)', z_i_p', zeros((n_x_i+n_u_i)*N*(M-i),1)']
+            
+%             z_i_p = zeros((n_x+n_u)*N); % reset by subsystem
+            if i == 1
+                z_i_p = z_mi + [z_i_ast', zeros((n_x_i+n_u_i)*N*(M-2),1)'];
+            elseif i == M
+                z_i_p = z_mi + [zeros((n_x_i+n_u_i)*N*(M-2),1)', z_i_ast'];
+            else
+                z_i_p = z_mi + [zeros((n_x_i+n_u_i)*N*(i-2),1)', z_i_ast', zeros((n_x_i+n_u_i)*N*(M-i-1),1)'];
+            end
+            z_pp1 = z_pp1 + omega_i*z_i_p;  % convex combination
         end
-%         norm(z_p)
-        opt = z_p; % save z_p
+        z_p = z_pp1;
+%         opt = z_p; % save z_p
 %         opt1= opt;
-        data_i = [data_i, opt]; %  sequence of subsystem
+        data_i = [data_i, z_p]; %  sequence of subsystem
         data_u = [data_u; ([zeros(n_u,n_u*k) eye(n_u) zeros(n_u,n_u*(N-1-k))]*[zeros(n_u*N,n_x*N), eye(n_u*N)]*opt)'];
     end
     k=0;

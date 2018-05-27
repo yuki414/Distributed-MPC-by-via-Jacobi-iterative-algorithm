@@ -11,7 +11,7 @@ AeqV_M = [];    beqV_M = [];
 x_i = x(2*i-3:2*i+2,1);
 x_1 = x(1:4,1);
 x_M = x(M-3:M,1);
-x_im1
+x_im1 = xmi()
 % if i > 1
 %     x_im1 = x(2*(i-1)-1:2*(i-1),1);
 %     x_im2 = zeros(2,1);
