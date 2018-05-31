@@ -8,10 +8,12 @@ AeqV_i = [];    beqV_i = [];
 AeqV_1 = [];    beqV_1 = [];
 AeqV_M = [];    beqV_M = [];
 %% initial condition
-x_i = x(2*i-3:2*i+2,1);
+if (i>1)&&(i<M)
+    x_i = x(2*i-3:2*i+2,1);
+end
 x_1 = x(1:4,1);
 x_M = x(M-3:M,1);
-x_im1
+
 % if i > 1
 %     x_im1 = x(2*(i-1)-1:2*(i-1),1);
 %     x_im2 = zeros(2,1);
@@ -52,10 +54,44 @@ switch i
         beqV_i = [beqV_i;
         Ak_i*x_i
         ];
-        for k = 0:N-1
+end
+%% BeqC
+switch i
+    case 1
+        for k = 0:N-2
+            beqC_1 = [beqC_1;
+            zeros(n_x_i,1); 
+            Aim1*x_mi((i+1)*N*n_x_i+1+n_x_i*k:(i+1)*N*n_x_i+2+n_x_i*k);
+            ];
+        end
+    case 2
+        for k = 0:N-2
+            beqC_i = [beqC_i;
+            zeros(2*n_x_i,1); 
+            Aim1*x_mi((i+1)*N*n_x_i+1+n_x_i*k:(i+1)*N*n_x_i+2+n_x_i*k);
+            ];
+        end
+    case M
+        for k = 0:N-2
+            beqC_M = [beqC_M;
+            Aim1*x_mi((i-3)*N*n_x_i+1+n_x_i*k:(i-3)*N*n_x_i+2+n_x_i*k);
+            zeros(n_x_i,1);
+            ];
+        end
+    case M - 1
+        for k = 0:N-2
+            beqC_i = [beqC_i;
+            Aim1*x_mi((i-3)*N*n_x_i+1+n_x_i*k:(i-3)*N*n_x_i+2+n_x_i*k);
+            zeros(2*n_x_i,1);
+            ];
+        end
+    otherwise
+        for k = 0:N-2
             beqC_i = [beqC_i;
             % constant value corresponded to A^-i
-            
+            Aim1*x_mi((i+1)*N*n_x_i+1+n_x_i*k:(i+1)*N*n_x_i+2+n_x_i*k);
+            zeros(n_x_i,1);
+            Aim1*x_mi((i-3)*N*n_x_i+1+n_x_i*k:(i-3)*N*n_x_i+2+n_x_i*k);
             ];
         end
 end
@@ -66,8 +102,8 @@ switch i
         f = f_M;
         Aeq = [AeqV_M ; AeqC_M];
         beq = [beqV_M ; beqC_M];
-        Aineq = [AineqV_M ; AineqC_M];
-        bineq = [bineqV_M ; bineqC_M];
+        Aineq = [AineqC_M];
+        bineq = [bineqC_M];
         lb = ones(1,(r-1)*(n_u_i+n_x_i)*N);
         ub = ones(1,(r-1)*(n_u_i+n_x_i)*N);
     case 1
@@ -75,8 +111,8 @@ switch i
         f = f_1;
         Aeq = [AeqV_1 ; AeqC_1];
         beq = [beqV_1 ; beqC_1];
-        Aineq = [AineqV_1 ; AineqC_1];
-        bineq = [bineqV_1 ; bineqC_1];
+        Aineq = [AineqC_1];
+        bineq = [bineqC_1];
         lb = ones(1,(r-1)*(n_u_i+n_x_i)*N);
         ub = ones(1,(r-1)*(n_u_i+n_x_i)*N);
     otherwise
@@ -84,8 +120,8 @@ switch i
         f = f_i;
         Aeq = [AeqV_i ; AeqC_i];
         beq = [beqV_i ; beqC_i];
-        Aineq = [AineqV_i ; AineqC_i];
-        bineq = [bineqV_i ; bineqC_i];
+        Aineq = [AineqC_i];
+        bineq = [bineqC_i];
         lb = ones(1,r*(n_u_i+n_x_i)*N);
         ub = ones(1,r*(n_u_i+n_x_i)*N);
 end

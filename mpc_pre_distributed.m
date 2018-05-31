@@ -17,6 +17,7 @@ Qk_1 = blkdiag(Qi,Qi);  Qk_M = Qk_1;
 Rk_1 = blkdiag(Ri,Ri);  Rk_M = Rk_1;
 %% local system matrix
 Ak_i = zeros(n_x_i*r);
+Ak_mi = zeros(n_x_i*(M-r));
 Bk_i = zeros(n_x_i*r,n_u_i*r);
 Qk_i = zeros(n_x_i*r);
 Rk_i = zeros(n_u_i*r);

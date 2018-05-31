@@ -11,7 +11,7 @@ AeqV_M = [];    beqV_M = [];
 x_i = x(2*i-3:2*i+2,1);
 x_1 = x(1:4,1);
 x_M = x(M-3:M,1);
-x_im1 = xmi()
+
 % if i > 1
 %     x_im1 = x(2*(i-1)-1:2*(i-1),1);
 %     x_im2 = zeros(2,1);
@@ -36,6 +36,12 @@ switch i
         beqV_1 = [beqV_1;
         Ak_1*x_1
         ];
+        for k = 0:N-1
+            beqC_1 = [beqC_1;
+            zeros(n_x_i,1); 
+            Aim1*x_mi((i+1)*N*n_x_i+1+n_x_i*k:(i+1)*N*n_x_i+2+n_x_i*k);
+            ];
+        end
 %% for M
     case M
         AeqV_M =[AeqV_M;
@@ -44,6 +50,12 @@ switch i
         beqV_M = [beqV_M;
         Ak_M*x_M
         ];
+        for k = 0:N-1
+            beqC_M = [beqC_M;
+            Aim1*x_mi((i-3)*N*n_x_i+1+n_x_i*k:(i-3)*N*n_x_i+2+n_x_i*k);
+            zeros(n_x_i,1);
+            ];
+        end
 %% for i
     otherwise
         AeqV_i =[AeqV_i;
@@ -55,9 +67,17 @@ switch i
         for k = 0:N-1
             beqC_i = [beqC_i;
             % constant value corresponded to A^-i
-            
+            Aim1*x_mi((i+1)*N*n_x_i+1+n_x_i*k:(i+1)*N*n_x_i+2+n_x_i*k);
+            zeros(n_x_i,2);
+            Aim1*x_mi((i-3)*N*n_x_i+1+n_x_i*k:(i-3)*N*n_x_i+2+n_x_i*k);
             ];
         end
+end
+%% BeqC
+switch i
+    case 1&&2
+for k = 0:N-1
+    
 end
 %% constraint matrix
 switch i

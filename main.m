@@ -3,15 +3,16 @@ clear all
 close all
 solver = 'gurobi';  % gurobi or cplex
 controller = 'dmpc'; % cmpc, dmpc or free
-terminal = 'constraint' % constraint or cost
+terminal = 'constraint'; % constraint or cost
 %% parameters
 k1 = 0.4;   k2 = 0.3;
 fs = 0.4;
 Ts = 0.05;
-RUNSTEP = 4/Ts;
+% RUNSTEP = 4/Ts;
+RUNSTEP = 1;
 m = 1;
 M = 5; % a number of agent
-N = 3; % predictive horizon
+N = 15; % predictive horizon
 Qi = [100 0; 0 0]; % weighting matrix for state
 Ri = 10; % for input
 %% local dynamics
@@ -73,6 +74,7 @@ for step_c = 1:RUNSTEP
     draw_calc_time(1)
 end
 draw_calc_time(3)
+save dd Usol
 end
 %% Distributed MPC
 if(strcmpi(controller,'dmpc'))
@@ -84,9 +86,11 @@ pmax = 2;   % a number of iteration
 r = 1;  % neighborhood set
 r = r*2 + 1;    % e.g. r=1 is {i-1,i,i+1}
 AB = [];
-for j = 1:N
-    AB = blkdiag(AB,A,B);
-end
+% for j = 1:N
+%     AB = blkdiag(AB,A,B);
+% end
+Ak = kron(eye(N),A);    % diag(A,A,...)
+Bk = kron(eye(N),B);    % diag(B,B,...)
 %%
 mpc_pre_distributed
 % dmpc preparation for each subsystems
@@ -95,46 +99,79 @@ mpc_pre_distributed
 % but beq is constant value changed by step or iteration
 % thereby beq is programmed later
 
-z_p=zeros((n_x+n_u)*N,1); 
+z_p=zone((n_x+n_u)*N,1);
+% load dd
+% z_p = Usol;
+% z_p = [1:(n_x+n_u)*N]';
 % X = x0(2*i-1:2*i,1);
 % data_i = [];    data_d=[]; data_u=[];
 % data_x=[];
 % RUNSTEP = 1;
 draw_calc_time(0)
+% break
 for step_d = 1:RUNSTEP
-    calc_time(step_i) = toc;
+%     calc_time(step_i) = toc;
 %         tic
     opt=zeros((n_x_i+n_u_i)*N,1);
     for p = 0:pmax % loop for iteration
-        
+        z_mi = z_p;
+        X = z_mi(1:n_x*N,1);
+        U = z_mi(n_x*N+1:N*(n_x+n_u),1);
+        ele = eye(M);
+
+%         x_mi(find(~x_mi)) = [];
+%         if (i == 1)&&(i == M)
+%             Ak_mi = kron(A,eye(N*(M-r+1)));
+%         else
+%             Ak_mi = kron(A,eye(N*n_x_i*(M-r)));
+%         end
+%         X_A = Ak*X;
         data_t=[];
         for i = 1:M
-%             should review, because of z=[x', u']' but zi = [xi', ui']'
-            z_mi = z_p;
-            if i == 1
-                z_mi(1:(n_x_i+n_u_i)*N*2,1) = 0;
-            elseif i == M
-                z_mi((n_x_i+n_u_i)*N*(M-1)+1:(n_x_i+n_u_i)*N*M) = 0;
-            else
-                z_mi((n_x_i+n_u_i)*N*(i-2)+1:(n_x_i+n_u_i)*N*(i+1)) = 0;
+            if ~(i == 1)
+                ele(i-1,i-1) = 0;
             end
-            x_mi = AB*z_mi;
+            if ~(i == M)
+                ele(i+1,i+1) = 0;
+            end
+            ele(i,i) = 0;
+            x_mi = kron(ele,eye(N*n_x_i))*X;
+            u_mi = kron(ele,eye(N*n_x_i))*X;
+%             should review, because of z=[x', u']' but zi = [xi', ui']'
+%             x_mi = X_A()
+%             if i == 1
+%                 z_mi(1:(n_x_i+n_u_i)*N*2,1) = 0;
+%             elseif i == M
+%                 z_mi((n_x_i+n_u_i)*N*(M-1)+1:(n_x_i+n_u_i)*N*M) = 0;
+%             else
+%                 z_mi((n_x_i+n_u_i)*N*(i-2)+1:(n_x_i+n_u_i)*N*(i+1)) = 0;
+%             end
+%             x_mi = AB*z_mi;
             mpc_calc_distributed
             draw_calc_time(2)
 %             eval('z_', num2str(i), '_p = z_i_p;');
             % this is a case when optimal sequence of only i-th phiscal system
             % is extended to global sequence
             % [zeros((n_x_i+n_u_i)*N*(i-1),1)', z_i_p', zeros((n_x_i+n_u_i)*N*(M-i),1)']
-            
-%             z_i_p = zeros((n_x+n_u)*N); % reset by subsystem
-            if i == 1
-                z_i_p = z_mi + [z_i_ast', zeros((n_x_i+n_u_i)*N*(M-2),1)'];
-            elseif i == M
-                z_i_p = z_mi + [zeros((n_x_i+n_u_i)*N*(M-2),1)', z_i_ast'];
+            if (i == 1)&&(i == M)
+                x_i_p = z_i_p(1:n_x_i*N*2,1);
+                u_i_p = z_i_p(n_x_i*N*2+1:(n_x_i+n_u_i)*N);
             else
-                z_i_p = z_mi + [zeros((n_x_i+n_u_i)*N*(i-2),1)', z_i_ast', zeros((n_x_i+n_u_i)*N*(M-i-1),1)'];
+                x_i_p = z_i_p(1:n_x_i*N*3,1);
+                u_i_p = z_i_p(n_x_i*N*3+1:(n_x_i+n_u_i)*N);
             end
-            z_pp1 = z_pp1 + omega_i*z_i_p;  % convex combination
+            x_mi((min(find(~x_mi))):(max(find(~x_mi))),1) = x_i_p;
+            u_mi((min(find(~u_mi))):(max(find(~u_mi))),1) = u_i_p;
+            z_i_pp1 = [x_mi', u_mi']';
+%             z_i_p = zeros((n_x+n_u)*N); % reset by subsystem
+%             if i == 1
+%                 z_i_p = z_mi + [z_i_ast', zeros((n_x_i+n_u_i)*N*(M-2),1)'];
+%             elseif i == M
+%                 z_i_p = z_mi + [zeros((n_x_i+n_u_i)*N*(M-2),1)', z_i_ast'];
+%             else
+%                 z_i_p = z_mi + [zeros((n_x_i+n_u_i)*N*(i-2),1)', z_i_ast', zeros((n_x_i+n_u_i)*N*(M-i-1),1)'];
+%             end
+            z_pp1 = z_pp1 + omega_i*z_i_pp1;  % convex combination
         end
         z_p = z_pp1;
 %         opt = z_p; % save z_p
