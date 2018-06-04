@@ -78,7 +78,7 @@ for k = 0:N-1
     H_M = H_M + Tr_x_M_kp1'*Qk_M*Tr_x_M_kp1 + Tr_u_M_k'*Rk_M*Tr_u_M_k;
 %% Constraints
 %% x(k+1|t)=Ax(k|t)+Bu(k|t)
-    if k > 0
+    if (k > 0)&&(k < N-1)
         % for local variable z^i
         AeqC_i = [AeqC_i; 
         Tr_x_i_kp1 - Ak_i*Tr_x_i_k - Bk_i*Tr_u_i_k
@@ -96,35 +96,35 @@ for k = 0:N-1
 %% state constraint
 % first
     % for i
-    AineqC_i = [AineqC_i;
-    Tr_x_i_kp1;
-    -Tr_x_i_kp1;
-    ];
-    bineqC_i = [bineqC_i;
-    xmax_i;
-    -xmax_i;
-    ];
-    % for 1
-    AineqC_1 = [AineqC_1;
-    Tr_x_1_kp1;
-    -Tr_x_1_kp1;
-    ];
-    bineqC_1 = [bineqC_1;
-    xmax_1;
-    -xmax_1;
-    ];
-    % for M
-    AineqC_M = [AineqC_M;
-    Tr_x_M_kp1;
-    -Tr_x_M_kp1;
-    ];
-    bineqC_M = [bineqC_M;
-    xmax_M;
-    -xmax_M;
-    ];
-% second
+%     AineqC_i = [AineqC_i;
+%     Tr_x_i_kp1;
+%     -Tr_x_i_kp1;
+%     ];
+%     bineqC_i = [bineqC_i;
+%     xmax_i;
+%     -xmax_i;
+%     ];
+%     % for 1
+%     AineqC_1 = [AineqC_1;
+%     Tr_x_1_kp1;
+%     -Tr_x_1_kp1;
+%     ];
+%     bineqC_1 = [bineqC_1;
+%     xmax_1;
+%     -xmax_1;
+%     ];
+%     % for M
+%     AineqC_M = [AineqC_M;
+%     Tr_x_M_kp1;
+%     -Tr_x_M_kp1;
+%     ];
+%     bineqC_M = [bineqC_M;
+%     xmax_M;
+%     -xmax_M;
+%     ];
+% % second
     if k>0
-        % for i
+%         for i
         AineqC_i = [AineqC_i;
         Tr_x_i_kp1 - Tr_x_i_k;
         -Tr_x_i_kp1 + Tr_x_i_k;
@@ -133,7 +133,7 @@ for k = 0:N-1
         xmax_i;
         -xmin_i;
         ];
-        % for 1
+%         for 1
         AineqC_1 = [AineqC_1;
         Tr_x_1_kp1 - Tr_x_1_k;
         -Tr_x_1_kp1 + Tr_x_1_k;
@@ -142,7 +142,7 @@ for k = 0:N-1
         xmax_1;
         -xmin_1;
         ];
-        % for M
+%         for M
         AineqC_M = [AineqC_M;
         Tr_x_M_kp1 - Tr_x_M_k;
         -Tr_x_M_kp1 + Tr_x_M_k;
@@ -159,22 +159,13 @@ for k = 0:N-1
             AeqC_i = [AeqC_i;
             Tr_x_i_kp1
             ];
-            beqC_i = [beqC_i;
-            zeros(r*n_x_i,1)
-            ];
             % for 1
             AeqC_1 = [AeqC_1;
             Tr_x_1_kp1
             ];
-            beqC_1 = [beqC_1;
-            zeros((r-1)*n_x_i,1)
-            ];
             % for M
             AeqC_M = [AeqC_M;
             Tr_x_M_kp1
-            ];
-            beqC_M = [beqC_M;
-            zeros((r-1)*n_x_i,1)
             ];
         end
     elseif(strcmpi(terminal,'cost'))
@@ -189,5 +180,5 @@ Tr_x_i_1 = [zeros(r*n_x_i,r*n_x_i*k) eye(r*n_x_i) zeros(r*n_x_i,r*n_x_i*(N-1-k))
 Tr_u_1_0 =  [zeros((r-1)*n_u_i,(r-1)*n_u_i*k) eye((r-1)*n_u_i) zeros((r-1)*n_u_i,(r-1)*n_u_i*(N-1-k))]*Tr_U_1;
 Tr_x_1_1 =  [zeros((r-1)*n_x_i,(r-1)*n_x_i*k) eye((r-1)*n_x_i) zeros((r-1)*n_x_i,(r-1)*n_x_i*(N-1-k))]*Tr_X_1;
 
-Tr_u_M_0 = [zeros((r-1)*n_x_i,(r-1)*n_x_i*k) eye((r-1)*n_x_i) zeros((r-1)*n_x_i,(r-1)*n_x_i*(N-1-k))]*Tr_X_M;
+Tr_u_M_0 = [zeros((r-1)*n_u_i,(r-1)*n_u_i*k) eye((r-1)*n_u_i) zeros((r-1)*n_u_i,(r-1)*n_u_i*(N-1-k))]*Tr_U_M;
 Tr_x_M_1 = [zeros((r-1)*n_x_i,(r-1)*n_x_i*k) eye((r-1)*n_x_i) zeros((r-1)*n_x_i,(r-1)*n_x_i*(N-1-k))]*Tr_X_M;

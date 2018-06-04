@@ -3,6 +3,9 @@ H_i = sparse((H_i + H_i')/2);
 H_1 = sparse((H_1 + H_1')/2);
 H_M = sparse((H_M + H_M')/2);
 %% constraints
+beqC_i = [];
+beqC_1 = [];
+beqC_M = [];
 % AineqV = [];   bineqV = [];
 AeqV_i = [];    beqV_i = [];
 AeqV_1 = [];    beqV_1 = [];
@@ -13,22 +16,7 @@ if (i>1)&&(i<M)
 end
 x_1 = x(1:4,1);
 x_M = x(M-3:M,1);
-
-% if i > 1
-%     x_im1 = x(2*(i-1)-1:2*(i-1),1);
-%     x_im2 = zeros(2,1);
-% end
-% if i < M
-%     x_ip1 = x(2*(i+1)-1:2*(i+1),1);
-%     x_ip2 = zeros(2,1);
-% end
-% if i > 2
-%     x_im2 = x(2*(i-2)-1:2*(i-2),1);
-% end
-% if i < M - 1
-%     x_ip2 = x(2*(i+2)-1:2*(i+2),1);
-% end
-%% x(k+1|t)=A*x(k|t)+B*u(k|t)
+%% x(1|t)-B*u(0|t)=A*x(0|t)
 switch i
 %% for i
     case 1
@@ -58,41 +46,71 @@ end
 %% BeqC
 switch i
     case 1
-        for k = 0:N-2
-            beqC_1 = [beqC_1;
-            zeros(n_x_i,1); 
-            Aim1*x_mi((i+1)*N*n_x_i+1+n_x_i*k:(i+1)*N*n_x_i+2+n_x_i*k);
-            ];
+        for k = 0:N-1
+            if (k > 0)&&(k < N-1)
+                beqC_1 = [beqC_1;
+                zeros(n_x_i,1); 
+                X_A_i(2*k+1:2*k+2,2);
+                ];
+            elseif (k == N-1)
+                beqC_1 = [beqC_1;
+                zeros((r-1)*n_x_i,1)
+                ];
+            end
         end
     case 2
-        for k = 0:N-2
-            beqC_i = [beqC_i;
-            zeros(2*n_x_i,1); 
-            Aim1*x_mi((i+1)*N*n_x_i+1+n_x_i*k:(i+1)*N*n_x_i+2+n_x_i*k);
-            ];
+        for k = 0:N-1
+            if (k > 0)&&(k < N-1)
+                beqC_i = [beqC_i;
+                zeros(2*n_x_i,1); 
+                X_A_i(2*k+1:2*k+2,3);
+                ];
+            elseif (k == N-1)
+                beqC_i = [beqC_i;
+                zeros(r*n_x_i,1)
+                ];
+            end
         end
     case M
-        for k = 0:N-2
-            beqC_M = [beqC_M;
-            Aim1*x_mi((i-3)*N*n_x_i+1+n_x_i*k:(i-3)*N*n_x_i+2+n_x_i*k);
-            zeros(n_x_i,1);
-            ];
+        for k = 0:N-1
+            if (k > 0)&&(k < N-1)
+                beqC_M = [beqC_M;
+                X_A_i(2*k+1:2*k+2,M-1);
+                zeros(n_x_i,1);
+                ];
+            elseif (k == N-1)
+                beqC_M = [beqC_M;
+                zeros((r-1)*n_x_i,1)
+                ];
+            end
         end
     case M - 1
-        for k = 0:N-2
-            beqC_i = [beqC_i;
-            Aim1*x_mi((i-3)*N*n_x_i+1+n_x_i*k:(i-3)*N*n_x_i+2+n_x_i*k);
-            zeros(2*n_x_i,1);
-            ];
+        for k = 0:N-1
+            if (k > 0)&&(k < N-1)
+                beqC_i = [beqC_i;
+                X_A_i(2*k+1:2*k+2,M-2);
+                zeros(2*n_x_i,1);
+                ];
+            elseif (k == N-1)
+                beqC_i = [beqC_i;
+                zeros(r*n_x_i,1)
+                ];
+            end
         end
     otherwise
-        for k = 0:N-2
-            beqC_i = [beqC_i;
-            % constant value corresponded to A^-i
-            Aim1*x_mi((i+1)*N*n_x_i+1+n_x_i*k:(i+1)*N*n_x_i+2+n_x_i*k);
-            zeros(n_x_i,1);
-            Aim1*x_mi((i-3)*N*n_x_i+1+n_x_i*k:(i-3)*N*n_x_i+2+n_x_i*k);
-            ];
+        for k = 0:N-1
+            if (k > 0)&&(k < N-1)
+                beqC_i = [beqC_i;
+               % constant value corresponded to A^-i
+                X_A_i(2*k+1:2*k+2,i-1);
+                zeros(n_x_i,1);
+                X_A_i(2*k+1:2*k+2,i+1);
+                ];
+            elseif (k == N-1)
+                beqC_i = [beqC_i;
+                zeros(r*n_x_i,1)
+                ];
+            end
         end
 end
 %% constraint matrix
