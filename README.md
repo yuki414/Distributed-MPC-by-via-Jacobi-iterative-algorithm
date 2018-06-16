@@ -1,1 +1,1 @@
-# Distributed-MPC-by-via-Jacobi-iterative-algorithm
+# Distributed-MPC-by-Jacobi-iterative-algorithm
