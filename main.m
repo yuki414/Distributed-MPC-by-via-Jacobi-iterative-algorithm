@@ -84,22 +84,6 @@ d_fig = 0;
 %% unique parameter for dmpc
 x = x0;
 omega = 1;
-<<<<<<< HEAD
-omega_i = omega/M; % “ÊŒ‹‡F•½‹Ï
-pmax = 2;   % a number of iteration
-z_p=[]; 
-x = x0;
-X = x0(2*i-1:2*i,1);
-data_i = []; data_d=[]; data_u=[]; data_x=[];
-% RUNSTEP = 1;
-% draw_calc_time(0)
-for step_i = 1:RUNSTEP
-%     calc_time(step_i) = toc;
-%         tic
-    opt=zeros((n_x+n_u)*N,1); % Å“K‰ð‚Ì“ü‚ê•¨
-    for p = 0:pmax % loop for iteration
-        z_p=0; % iteration‚²‚Æ‚É‰Šú‰»
-=======
 omega_i = omega/M; % set a mean
 pmax = 5;   % a number of iteration
 r = 1;  % neighborhood set
@@ -140,24 +124,9 @@ for step_d = 1:RUNSTEP
                 U_i(n_u_i*k,i) = U(n_u_i*(k-1)*M+(i-1)*n_u_i+1,1);
             end
         end
->>>>>>> sub2
         data_t=[];
         z_pp1 = 0;
         for i = 1:M
-<<<<<<< HEAD
-            switch i
-                case 1
-                    mpc_pre_distributed_1 % “‡‰Â
-                case M 
-                    mpc_pre_distributed_M
-                otherwise
-                    mpc_pre_distributed
-            end
-            mpc_calc_distributed_iteration
-            draw_calc_time(2)
-            opt1 = opt;
-            z_p = z_p + omega_i*z_i_p; % “ÊŒ‹‡
-=======
             mpc_calc_distributed % generate an optimal input
 %           z_i_p‚Íi-1,i,i+1‚Ì‰ðŒn—ñ
 %           ‚Ü‚¸ó‘Ô‚Æ“ü—Í‚É•ª‚¯‚é
@@ -195,7 +164,6 @@ for step_d = 1:RUNSTEP
             z_i_pp1 = [X_i_pp1', U_i_pp1']';
 %             draw_calc_time(2)
             z_pp1 = z_pp1 + omega_i*z_i_pp1;  % convex combination
->>>>>>> sub2
         end
         z_p = z_pp1;
         data_i = [data_i, z_p]; % sequence of subsystem
@@ -231,8 +199,8 @@ for i=1:M
     plot(data_x(:,1)*Ts,data_x(:,2*i+1))
 end
 
-figure(4)
-hold on; grid on
-for i=1:M
-    plot(data_c(:,1)*Ts,data_c(:,2*i+1))
-end
+% figure(4)
+% hold on; grid on
+% for i=1:M
+%     plot(data_c(:,1)*Ts,data_c(:,2*i+1))
+% end
