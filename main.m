@@ -76,28 +76,22 @@ end
 %% Distributed MPC
 if 0
 omega = 1;
-omega_i = omega/M; % set a mean
+omega_i = omega/M; % “ÊŒ‹‡F•½‹Ï
 pmax = 2;   % a number of iteration
-% for i=1:M
-%     mpc_pre_distributed
-% end
 z_p=[]; 
 x = x0;
 X = x0(2*i-1:2*i,1);
-data_i = [];    data_d=[]; data_u=[];
-data_x=[];
+data_i = []; data_d=[]; data_u=[]; data_x=[];
 % RUNSTEP = 1;
-draw_calc_time(0)
+% draw_calc_time(0)
 for step_i = 1:RUNSTEP
-    calc_time(step_i) = toc;
+%     calc_time(step_i) = toc;
 %         tic
-    opt=zeros((n_x+n_u)*N,1);
+    opt=zeros((n_x+n_u)*N,1); % Å“K‰ð‚Ì“ü‚ê•¨
     for p = 0:pmax % loop for iteration
         z_p=0; % iteration‚²‚Æ‚É‰Šú‰»
-        
         data_t=[];
         for i = 1:M
-%             i
             switch i
                 case 1
                     mpc_pre_distributed_1 % “‡‰Â
@@ -109,16 +103,6 @@ for step_i = 1:RUNSTEP
             mpc_calc_distributed_iteration
             draw_calc_time(2)
             opt1 = opt;
-%             if (i>1&&i<M)
-%                 opt1(n_x_i*N*(i-2)+1:n_x_i*N*(i+1)) = 0;
-%             end
-%             if i == 1
-%                 opt1(n_x_i*N*(i-1)+1:n_x_i*N*(i+1)) = 0;
-%             end
-%             if i == M-1
-%                 opt1(n_x_i*N*(i-2)+1:n_x_i*N*(i)) = 0;
-%             end
-%             z_p = z_p + omega_i*(z_i_p + opt1); % “ÊŒ‹‡
             z_p = z_p + omega_i*z_i_p; % “ÊŒ‹‡
         end
 %         norm(z_p)
