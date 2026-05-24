@@ -1,1 +1,1 @@
-# Distributed-MPC-by-Jacobi-iterative-algorithm
+## **This repository has been archived by the owner. It is now read-only.**
